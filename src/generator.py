@@ -31,12 +31,13 @@ class Generator:
         base_url: str = None,
     ):
         self.model = model or config.LLM_MODEL
+        api_key = api_key or config.DEEPSEEK_API_KEY or config.OPENAI_API_KEY
+        base_url = base_url or config.DEEPSEEK_BASE_URL or config.OPENAI_BASE_URL
         kwargs = {"model": self.model, "temperature": 0.1}
-        api_key = api_key or config.OPENAI_API_KEY
         if api_key:
             kwargs["openai_api_key"] = api_key
-        if base_url or config.OPENAI_BASE_URL:
-            kwargs["openai_base_url"] = base_url or config.OPENAI_BASE_URL
+        if base_url:
+            kwargs["base_url"] = base_url
         self._llm: Optional[ChatOpenAI] = None
         self._llm_kwargs = kwargs
 

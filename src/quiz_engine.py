@@ -9,9 +9,9 @@ from dataclasses import dataclass, field
 @dataclass
 class Question:
     """题目数据结构"""
-    id: int
-    type: str  # single / multi / short
-    stem: str  # 题干
+    id: int = 0
+    type: str = "single"  # single / multi / short
+    stem: str = ""  # 题干
     options: List[str] = field(default_factory=list)
     answer: str = ""  # 正确答案
     explanation: str = ""

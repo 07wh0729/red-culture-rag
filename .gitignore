@@ -17,3 +17,6 @@ check_syntax.py
 check_all.py
 uploads/
 media/audio/*.mp3
+media/images/[a-f0-9]*.jpg
+media/images/[a-f0-9]*.png
+media/metadata.json

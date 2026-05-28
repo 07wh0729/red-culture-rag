@@ -15,7 +15,7 @@ import config
 class MediaManager:
     """统一管理图片、视频、音频资源"""
 
-    ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+    ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg"}
     ALLOWED_VIDEO = {".mp4", ".webm", ".avi", ".mov"}
     ALLOWED_AUDIO = {".mp3", ".wav", ".ogg", ".m4a"}
 

@@ -16,8 +16,13 @@ CHUNK_OVERLAP = 80
 
 TOP_K = 5
 
-LLM_PROVIDER = "openai"
-LLM_MODEL = "gpt-4o-mini"
+# DeepSeek 大模型配置
+LLM_PROVIDER = "deepseek"
+LLM_MODEL = "deepseek-chat"
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "sk-8b62f55e436a42d9a92e2bfb2fd8bb17")
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
+
+# 兼容旧环境变量
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
 

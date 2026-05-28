@@ -72,8 +72,8 @@ def cmd_cli():
 
 def cmd_serve():
     import uvicorn
-    print(f"\n  🚩 红色文化智能学习平台 v2.0")
-    print(f"  学习中心: http://{config.API_HOST}:{config.API_PORT}")
+    print(f"\n  🚩 红色文化智能学习平台 v2.0 (DeepSeek)")
+    print(f'  大模型: DeepSeek (deepseek-chat)'); print(f'  学习中心: http://{config.API_HOST}:{config.API_PORT}')
     print(f"  后台管理: http://{config.API_HOST}:{config.API_PORT}/admin")
     print(f"  API 文档: http://{config.API_HOST}:{config.API_PORT}/docs\n")
     uvicorn.run("src.api:app", host=config.API_HOST, port=config.API_PORT, reload=False)

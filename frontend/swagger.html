@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>红色文化智能学习平台 - API 文档</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        html { box-sizing: border-box; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin: 0; background: #fafafa; }
+        .topbar { display: none; }
+        .swagger-ui .info .title { color: #C41E3A; }
+        .swagger-ui .opblock-tag { font-size: 16px; }
+    </style>
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+function HideCurlPlugin() {
+  return {
+    afterLoad: function() {
+      const curlEls = document.querySelectorAll('.curl-command');
+      curlEls.forEach(el => el.style.display = 'none');
+    }
+  };
+}
+
+const ui = SwaggerUIBundle({
+    url: "/openapi.json",
+    dom_id: "#swagger-ui",
+    deepLinking: true,
+    defaultModelsExpandDepth: 1,
+    defaultModelExpandDepth: 2,
+    docExpansion: "list",
+    displayOperationId: false,
+    plugins: [HideCurlPlugin],
+    layout: "BaseLayout",
+    presets: [SwaggerUIBundle.presets.apis],
+    requestInterceptor: function(req) { return req; },
+    responseInterceptor: function(res) { return res; }
+});
+
+// Swagger UI 中文化补丁 - 重写英文标签
+setTimeout(function() {
+    const translations = {
+        "Schemas": "数据模型",
+        "Expand all": "全部展开",
+        "Collapse all": "全部折叠",
+        "Example Value": "示例值",
+        "Schema": "模型",
+        "No parameters": "无参数",
+        "Request body": "请求体",
+        "Responses": "响应",
+        "Response body": "响应体",
+        "Server response": "服务器响应",
+        "Code": "状态码",
+        "Details": "详情",
+        "Body": "请求体",
+        "Headers": "请求头",
+        "Media type": "媒体类型",
+        "Try it out": "试一试",
+        "Cancel": "取消",
+        "Execute": "执行",
+        "Clear": "清除",
+        "Loading...": "加载中...",
+        "Download": "下载",
+        "Close": "关闭",
+        "Send Request": "发送请求",
+        "Copy": "复制",
+        "Copied": "已复制",
+        "curl": "curl",
+        "Authorize": "认证",
+        "Available authorizations": "可用认证",
+        "Authorizations dialog": "认证对话框",
+        "http": "http",
+        "AuthorizeButton": "认证",
+        "Login": "登录",
+        "Logout": "登出",
+        "Token": "令牌",
+        "apiKey": "API密钥",
+        "Value": "值",
+        "Description": "描述",
+        "Parameter content type": "参数内容类型",
+        "number": "数字",
+        "string": "字符串",
+        "boolean": "布尔值",
+        "integer": "整数",
+        "array": "数组",
+        "object": "对象",
+        "null": "空",
+    };
+
+    function replaceText(el) {
+        if (el.nodeType === 3) {
+            let text = el.textContent;
+            for (const [en, zh] of Object.entries(translations)) {
+                if (text.trim() === en || text.includes(en)) {
+                    text = text.replace(en, zh);
+                }
+            }
+            el.textContent = text;
+        } else if (el.nodeType === 1 && el.childNodes) {
+            el.childNodes.forEach(replaceText);
+        }
+    }
+
+    // 定时检查并替换新增 DOM
+    function patch() {
+        replaceText(document.querySelector('.swagger-ui') || document.body);
+    }
+    patch();
+    setInterval(patch, 500);
+}, 1000);
+</script>
+</body>
+</html>
