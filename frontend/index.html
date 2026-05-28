@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>红色文化智能学习平台</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <h1><span class="icon">🚩</span>红色文化智能学习平台</h1>
+        <nav>
+            <a href="/" class="active">学习中心</a>
+            <a href="/admin">资源管理</a>
+            <a href="/docs" target="_blank">API文档</a>
+        </nav>
+    </div>
+</header>
+
+<div class="container" id="app">
+
+    <!-- 标签导航 -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="qa">💬 智能问答</button>
+        <button class="tab-btn" data-tab="quiz">📝 在线测验</button>
+        <button class="tab-btn" data-tab="knowledge">📚 知识浏览</button>
+        <button class="tab-btn" data-tab="media">🎬 红色资源</button>
+        <button class="tab-btn" data-tab="narrate">🎙️ 故事播报</button>
+    </div>
+
+    <!-- 智能问答 -->
+    <div class="tab-content active" id="tab-qa">
+        <div class="card">
+            <h3>🤖 RAG 智能问答</h3>
+            <p style="color:var(--text-sub);margin-bottom:16px;">基于知识库的语义检索，回答可溯源、防幻觉</p>
+            <div class="ask-area">
+                <input type="text" id="qa-input" placeholder="输入你的问题，如：井冈山精神的核心内涵是什么？" />
+                <button onclick="doAsk()">🔍 提问</button>
+            </div>
+            <div class="loading" id="qa-loading"><span class="spinner"></span> 正在检索知识库...</div>
+            <div class="answer-box" id="qa-answer">
+                <div class="answer-text" id="qa-text"></div>
+                <div class="sources" id="qa-sources"></div>
+                <div class="media-grid" id="qa-media"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 在线测验 -->
+    <div class="tab-content" id="tab-quiz">
+        <div class="card">
+            <h3>📝 智能在线测验</h3>
+            <div class="quiz-setup">
+                <input type="text" id="quiz-topic" value="红色文化" placeholder="测验主题" style="width:180px;" />
+                <select id="quiz-type">
+                    <option value="single">单选题</option>
+                    <option value="multi">多选题</option>
+                    <option value="short">简答题</option>
+                </select>
+                <select id="quiz-num">
+                    <option value="3">3题</option>
+                    <option value="5" selected>5题</option>
+                    <option value="10">10题</option>
+                </select>
+                <button onclick="doQuizGenerate()">🎲 生成题目</button>
+            </div>
+            <div class="loading" id="quiz-loading"><span class="spinner"></span> 正在生成题目...</div>
+            <div id="quiz-questions"></div>
+            <button class="submit-btn" id="quiz-submit" style="display:none;" onclick="doQuizSubmit()">📊 提交并查看成绩</button>
+            <div id="quiz-result"></div>
+        </div>
+    </div>
+
+    <!-- 知识浏览 -->
+    <div class="tab-content" id="tab-knowledge">
+        <div class="card">
+            <h3>📚 知识库浏览</h3>
+            <p style="color:var(--text-sub);margin-bottom:16px;">点击卡片查看知识点详情</p>
+            <div class="loading" id="kb-loading"><span class="spinner"></span> 加载中...</div>
+            <div class="knowledge-grid" id="kb-grid"></div>
+        </div>
+        <div class="card" id="kb-detail" style="display:none;">
+            <h3 id="kb-title"></h3>
+            <div id="kb-content"></div>
+            <button style="margin-top:12px;padding:8px 20px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;" onclick="document.getElementById('kb-detail').style.display='none';">← 返回列表</button>
+        </div>
+    </div>
+
+    <!-- 红色资源 -->
+    <div class="tab-content" id="tab-media">
+        <div class="card">
+            <h3>🎬 红色文化资源库</h3>
+            <div class="media-browser filter-bar">
+                <button class="active" onclick="filterMedia('all')">全部</button>
+                <button onclick="filterMedia('images')">🖼️ 图片</button>
+                <button onclick="filterMedia('videos')">🎥 视频</button>
+                <button onclick="filterMedia('audio')">🎵 音频</button>
+            </div>
+            <div class="loading" id="media-loading"><span class="spinner"></span> 加载中...</div>
+            <div class="media-grid" id="media-grid"></div>
+        </div>
+    </div>
+
+    <!-- 故事播报 -->
+    <div class="tab-content" id="tab-narrate">
+        <div class="card">
+            <h3>🎙️ 红色故事语音播报</h3>
+            <p style="color:var(--text-sub);margin-bottom:12px;">选择故事或输入文本，一键生成语音播报</p>
+            <select id="narrate-story" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:8px;margin-bottom:12px;">
+                <option value="">-- 选择预设故事 --</option>
+                <option value="雷锋">雷锋的故事</option>
+                <option value="董存瑞">董存瑞 - 舍身炸碉堡</option>
+                <option value="刘胡兰">刘胡兰 - 生的伟大死的光荣</option>
+                <option value="长征">红军长征</option>
+                <option value="井冈山">井冈山革命根据地</option>
+            </select>
+            <textarea id="narrate-text" style="width:100%;min-height:120px;padding:12px;border:2px solid var(--border);border-radius:8px;font-size:14px;resize:vertical;" placeholder="或直接输入故事文本..."></textarea>
+            <button class="submit-btn" onclick="doNarrate()" style="margin-top:12px;">🎙️ 生成语音播报</button>
+            <div class="loading" id="narrate-loading"><span class="spinner"></span> 正在合成语音...</div>
+            <div id="narrate-result"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

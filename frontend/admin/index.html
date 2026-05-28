@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>资源管理 - 红色文化智能学习平台</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: 16px;
+}
+.upload-zone:hover { border-color: var(--red); background: var(--red-light); }
+.upload-zone input[type=file] { display: none; }
+.resource-list { max-height: 400px; overflow-y: auto; }
+.resource-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+.resource-item:hover { background: var(--gold-light); }
+.resource-item .actions button {
+    padding: 4px 10px;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+}
+.resource-item .actions .del { color: var(--red); border-color: var(--red); }
+.resource-item .actions .del:hover { background: var(--red); color: white; }
+.status-bar {
+    display: flex;
+    gap: 20px;
+    padding: 16px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.status-item {
+    text-align: center;
+    flex: 1;
+    min-width: 100px;
+}
+.status-item .num { font-size: 28px; font-weight: 700; color: var(--red); }
+.status-item .label { font-size: 12px; color: var(--text-sub); }
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <h1><span class="icon">⚙️</span>后台资源管理</h1>
+        <nav>
+            <a href="/">学习中心</a>
+            <a href="/admin" class="active">资源管理</a>
+            <a href="/docs" target="_blank">API文档</a>
+        </nav>
+    </div>
+</header>
+
+<div class="container" style="padding-top:24px;">
+
+    <div class="status-bar" id="status-bar">
+        <div class="status-item"><div class="num" id="st-docs">-</div><div class="label">知识文档</div></div>
+        <div class="status-item"><div class="num" id="st-images">-</div><div class="label">图片资源</div></div>
+        <div class="status-item"><div class="num" id="st-videos">-</div><div class="label">视频资源</div></div>
+        <div class="status-item"><div class="num" id="st-audio">-</div><div class="label">音频资源</div></div>
+        <div class="status-item"><div class="num" id="st-vectors">-</div><div class="label">向量条目</div></div>
+    </div>
+
+    <div class="admin-grid">
+
+        <!-- 知识文档 -->
+        <div class="card">
+            <h3>📄 知识文档管理</h3>
+            <div class="upload-zone" onclick="document.getElementById('doc-upload').click()">
+                <p>📁 点击上传知识文档</p>
+                <small>支持 .txt / .md / .pdf / .docx</small>
+                <input type="file" id="doc-upload" accept=".txt,.md,.pdf,.docx" onchange="uploadDoc(this)" multiple />
+            </div>
+            <div class="resource-list" id="doc-list"></div>
+            <button class="submit-btn" onclick="doBuild()" style="margin-top:12px;width:100%;">🔄 重建向量索引</button>
+        </div>
+
+        <!-- 多媒体资源 -->
+        <div class="card">
+            <h3>🎬 多媒体资源管理</h3>
+            <div class="upload-zone" onclick="document.getElementById('media-upload').click()">
+                <p>📁 点击上传媒体资源</p>
+                <small>图片: jpg/png/gif/webp | 视频: mp4/webm | 音频: mp3/wav</small>
+                <input type="file" id="media-upload" accept="image/*,video/*,audio/*" onchange="uploadMedia(this)" multiple />
+            </div>
+            <div style="margin-bottom:12px;">
+                <input type="text" id="media-title" placeholder="资源标题（可选）" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;margin-bottom:8px;" />
+                <input type="text" id="media-tags" placeholder="标签，逗号分隔（可选）" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;" />
+            </div>
+            <div class="resource-list" id="media-list"></div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+
+function toast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show ' + (type || '');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function api(method, path, data) {
+    const opts = { method, headers: {} };
+    if (data instanceof FormData) opts.body = data;
+    else if (data) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(data); }
+    const res = await fetch(API + path, opts);
+    if (!res.ok) throw new Error((await res.json()).detail || '请求失败');
+    return res.json();
+}
+
+// 加载状态
+async function loadStatus() {
+    try {
+        const s = await api('GET', '/status');
+        document.getElementById('st-docs').textContent = s.media_count ? '-' : '-';
+        document.getElementById('st-images').textContent = s.media_count ? s.media_count.images : 0;
+        document.getElementById('st-videos').textContent = s.media_count ? s.media_count.videos : 0;
+        document.getElementById('st-audio').textContent = s.media_count ? s.media_count.audio : 0;
+        document.getElementById('st-vectors').textContent = s.document_count;
+    } catch(e) {}
+}
+
+// 知识文档
+async function loadDocs() {
+    try {
+        const docs = await api('GET', '/docs');
+        const list = document.getElementById('doc-list');
+        list.innerHTML = docs.length === 0 ? '<p style="text-align:center;color:var(--text-sub);padding:20px;">暂无文档</p>' : '';
+        docs.forEach(d => {
+            const div = document.createElement('div');
+            div.className = 'resource-item';
+            div.innerHTML = `<span>📄 ${d.name} <small>(${(d.size/1024).toFixed(1)} KB)</small></span>
+                <div class="actions"><button class="del" onclick="delDoc('${d.name}')">删除</button></div>`;
+            list.appendChild(div);
+        });
+        document.getElementById('st-docs').textContent = docs.length;
+    } catch(e) {}
+}
+
+async function uploadDoc(input) {
+    for (const file of input.files) {
+        const form = new FormData();
+        form.append('file', file);
+        try { await api('POST', '/docs/upload', form); toast(file.name + ' 上传成功', 'success'); }
+        catch(e) { toast('上传失败: ' + e.message); }
+    }
+    input.value = '';
+    loadDocs();
+}
+
+async function delDoc(name) {
+    if (!confirm('确定删除 ' + name + '？')) return;
+    try { await api('DELETE', '/docs/' + encodeURIComponent(name)); toast('已删除'); loadDocs(); }
+    catch(e) { toast('删除失败'); }
+}
+
+async function doBuild() {
+    if (!confirm('重建索引将清空现有向量库，确定吗？')) return;
+    try {
+        toast('正在重建索引...');
+        const r = await api('POST', '/build');
+        toast('索引构建完成！条目数: ' + r.document_count, 'success');
+        loadStatus();
+    } catch(e) { toast('构建失败: ' + e.message); }
+}
+
+// 多媒体
+async function loadMediaList() {
+    try {
+        const media = await api('GET', '/media');
+        const list = document.getElementById('media-list');
+        const icons = { images: '🖼️', videos: '🎥', audio: '🎵' };
+        list.innerHTML = media.length === 0 ? '<p style="text-align:center;color:var(--text-sub);padding:20px;">暂无资源</p>' : '';
+        media.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'resource-item';
+            div.innerHTML = `<span>${icons[m.type]||'📁'} ${m.title} <small>(${m.type})</small></span>
+                <div class="actions"><button class="del" onclick="delMedia('${m.id}')">删除</button></div>`;
+            list.appendChild(div);
+        });
+    } catch(e) {}
+}
+
+async function uploadMedia(input) {
+    const title = document.getElementById('media-title').value;
+    const tags = document.getElementById('media-tags').value;
+    for (const file of input.files) {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('title', title || file.name);
+        form.append('tags', tags);
+        try { await api('POST', '/media/upload', form); toast(file.name + ' 上传成功', 'success'); }
+        catch(e) { toast('上传失败: ' + e.message); }
+    }
+    input.value = '';
+    document.getElementById('media-title').value = '';
+    document.getElementById('media-tags').value = '';
+    loadMediaList();
+    loadStatus();
+}
+
+async function delMedia(id) {
+    if (!confirm('确定删除该资源？')) return;
+    try { await api('DELETE', '/media/' + id); toast('已删除'); loadMediaList(); loadStatus(); }
+    catch(e) { toast('删除失败'); }
+}
+
+// 初始化
+loadStatus(); loadDocs(); loadMediaList();
+</script>
+</body>
+</html>
